@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from "react-native"
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList } from "react-native"
 
 const Button = props => {
   const { onButtonPress, text, styleOverride } = props
@@ -18,12 +18,13 @@ const ListInput = props => {
         style={styles.input}
         value={value}
         onChangeText={val => onChangeText(val)}
+        onSubmitEditing={onAddItem}
         autoFocus
       />
-      <Button text="ADD" onButtonPress={() => onAddItem()} />
+      <Button text="ADD" onButtonPress={onAddItem} />
       <Button
         text="Clear"
-        onButtonPress={() => onClearItems()}
+        onButtonPress={onClearItems}
         styleOverride={{ backgroundColor: "gray" }}
       />
     </View>
@@ -36,28 +37,62 @@ export default class App extends Component {
   addItem = () => {
     const { inputValue, items } = this.state
     if (inputValue) {
-      const newItems = [...items, inputValue]
-      this.setState({ items: newItems, inputValue: "" }) // Clear the inputValue (& TextField) on add item as well
+      // const newItems = [...items, inputValue]
+      // this.setState({ items: newItems, inputValue: "" }) // Clear the inputValue (& TextField) on add item as well
+
+      // TODO: add this to check item
+      const newItems = [...items, { name: inputValue, checked: false }] // ADD:
+      this.setState({ items: newItems, inputValue: "" }) // ADD:
     }
   }
 
   clearItems = () => this.setState({ inputValue: "", items: [] })
 
+  checkItem = selectedItem => {
+    const selectedName = selectedItem.name
+    const newItems = this.state.items.map(item => {
+      const { name, checked } = item
+      return name === selectedName ? { name: name, checked: !checked } : item
+    })
+    this.setState({ items: newItems })
+  }
+
+  listItems(item, index) {
+    const backgroundColor = item.checked ? "dodgerblue" : "indigo"
+    return (
+      <TouchableOpacity
+        onPress={() => this.checkItem(item)}
+        style={[styles.itemWrapper, { backgroundColor }]}
+        key={index}
+      >
+        <Text style={styles.item}>{item.name.toUpperCase()}</Text>
+      </TouchableOpacity>
+    )
+  }
+
   render() {
     const { items, inputValue } = this.state
     return (
       <View style={styles.container}>
-        <ListInput
-          value={inputValue}
-          onAddItem={this.addItem}
-          onClearItems={this.clearItems}
-          onChangeText={value => this.setState({ inputValue: value })}
-        />
-        {items.map((item, i) => (
-          <Text style={styles.theValue} key={i}>
-            {item}
-          </Text>
-        ))}
+        <View style={styles.topContainer}>
+          <ListInput
+            value={inputValue}
+            onAddItem={this.addItem}
+            onClearItems={this.clearItems}
+            onChangeText={value => this.setState({ inputValue: value })}
+          />
+        </View>
+        <View style={styles.bottomContainer}>
+          <FlatList
+            data={items}
+            extraData={{ data: items.length }}
+            keyExtractor={item => item}
+            renderItem={({ item, index }) => this.listItems(item, index)}
+            contentContainerStyle={styles.listContainer}
+            style={styles.list}
+            numColumns={3}
+          />
+        </View>
       </View>
     )
   }
@@ -66,11 +101,21 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5FCFF",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 5
+    backgroundColor: "#F5FCFF" // ADD:
   },
+  topContainer: {
+    // ADD:
+    flex: 1, // ADD:
+    justifyContent: "center", // ADD:
+    alignItems: "center", // ADD:
+    borderBottomWidth: 1, // ADD:
+    borderBottomColor: "black" // ADD:
+  }, // ADD:
+  bottomContainer: {
+    // ADD:
+    flex: 1, // ADD:
+    padding: 20 // ADD:
+  }, // ADD:
   theValue: {
     margin: 10,
     fontSize: 18
@@ -95,5 +140,46 @@ const styles = StyleSheet.create({
     margin: 5,
     color: "white",
     fontSize: 11
-  }
+  },
+  // Add this for FlatList
+  topContainer: {
+    // ADD:
+    flex: 1, // ADD:
+    justifyContent: "center", // ADD:
+    alignItems: "center", // ADD:
+    borderBottomWidth: 1, // ADD:
+    borderBottomColor: "black" // ADD:
+  }, // ADD:
+  bottomContainer: {
+    // ADD:
+    flex: 1, // ADD:
+    padding: 20 // ADD:
+  }, // ADD:
+  list: {
+    // ADD:
+    width: "95%", // ADD:
+    minHeight: 40, // ADD:
+    alignSelf: "center" // ADD:
+  }, // ADD:
+  listContainer: {
+    // ADD:
+    flex: 1, // ADD:
+    borderWidth: 1, // ADD:
+    borderColor: "lightgray", // ADD:
+    backgroundColor: "white" // ADD:
+  }, // ADD:
+  item: {
+    // ADD:
+    margin: 5, // ADD:
+    fontSize: 18, // ADD:
+    color: "white", // ADD:
+    fontWeight: "bold", // ADD:
+    alignSelf: "center" // ADD:
+  }, // ADD:
+  itemWrapper: {
+    // ADD:
+    margin: 2, // ADD:
+    flex: 1, // ADD:
+    justifyContent: "center" // ADD:
+  } // ADD:
 })
